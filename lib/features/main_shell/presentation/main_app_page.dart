@@ -23,24 +23,59 @@ class _MainAppPageState extends State<MainAppPage> {
     ];
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
-        title: Text(_selectedIndex == 0
-            ? '学习计划'
-            : (_selectedIndex == 1 ? '课程日程' : '学习文档')),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(
+          _selectedIndex == 0
+              ? 'Strategy'
+              : (_selectedIndex == 1 ? 'Schedule' : 'Library'),
+          style: const TextStyle(
+              fontWeight: FontWeight.w600, letterSpacing: -0.5),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: Colors.grey.withOpacity(0.1),
+            height: 1,
+          ),
+        ),
       ),
       body: pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
-        items: const [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble_outline), label: '计划'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_month), label: '日程'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.description_outlined), label: '文件'),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: Colors.grey.withOpacity(0.1))),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: (index) => setState(() => _selectedIndex = index),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          selectedItemColor: const Color(0xFF111827),
+          unselectedItemColor: const Color(0xFF9CA3AF),
+          selectedLabelStyle: const TextStyle(
+              fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+          unselectedLabelStyle: const TextStyle(
+              fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: -0.2),
+          type: BottomNavigationBarType.fixed,
+          items: const [
+            BottomNavigationBarItem(
+                icon: Icon(Icons.dashboard_outlined),
+                activeIcon: Icon(Icons.dashboard_rounded),
+                label: 'Plan'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.calendar_today_outlined),
+                activeIcon: Icon(Icons.calendar_today_rounded),
+                label: 'Schedule'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.folder_open_outlined),
+                activeIcon: Icon(Icons.folder_rounded),
+                label: 'Files'),
+          ],
+        ),
       ),
     );
   }
