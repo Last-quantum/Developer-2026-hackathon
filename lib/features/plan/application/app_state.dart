@@ -4,9 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../domain/models/study_day.dart';
+import '../domain/models/study_plan.dart';
 import '../domain/models/study_week.dart';
+import 'local_storage_service.dart';
 
 class MyAppState extends ChangeNotifier {
+  final LocalStorageService _storage;
+
   String jobDescription = '';
   List<String> aiQuestions = [];
   Map<String, String> userAnswers = {};
@@ -16,8 +20,89 @@ class MyAppState extends ChangeNotifier {
   bool isGeneratingPlan = false;
   int selectedWeekIndex = 0;
 
+  /// 当前正在编辑的计划 id（null 表示尚未保存过）
+  String? _currentPlanId;
+
+  /// 历史计划列表（用于"我的计划"页面等）
+  List<StudyPlan> get savedPlans => _storage.getAllPlans();
+
   static const String _apiBaseUrl = String.fromEnvironment('API_BASE_URL',
       defaultValue: 'http://localhost:3000');
+
+  MyAppState(this._storage) {
+    _tryRestoreLastPlan();
+  }
+
+  /// 尝试恢复上次打开的计划
+  void _tryRestoreLastPlan() {
+    final lastPlan = _storage.getLastOpenPlan();
+    if (lastPlan != null) {
+      debugPrint(
+          '🔄 Restoring plan: id=${lastPlan.id}, job=${lastPlan.jobTarget}, weeks=${lastPlan.weeks.length}');
+      _currentPlanId = lastPlan.id;
+      jobDescription = lastPlan.jobTarget;
+      aiQuestions = List<String>.from(lastPlan.aiQuestions);
+      userAnswers = Map<String, String>.from(lastPlan.userAnswers);
+      studyWeeks = lastPlan.weeks;
+      notifyListeners();
+    } else {
+      debugPrint('🔄 No saved plan found to restore');
+    }
+  }
+
+  /// 将当前状态保存到本地
+  Future<void> _saveCurrent() async {
+    if (studyWeeks.isEmpty) return; // 还没生成计划，不存
+
+    final plan = StudyPlan(
+      id: _currentPlanId ?? '${DateTime.now().millisecondsSinceEpoch}',
+      jobTarget: jobDescription,
+      aiQuestions: List<String>.from(aiQuestions),
+      userAnswers: Map<String, String>.from(userAnswers),
+      weeks: studyWeeks,
+      createdAt: _currentPlanId != null
+          ? (_storage.getPlan(_currentPlanId!)?.createdAt ?? DateTime.now())
+          : DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+
+    _currentPlanId = plan.id;
+    await _storage.savePlan(plan);
+    debugPrint(
+        '💾 Plan saved! id=${plan.id}, weeks=${plan.weeks.length}, job=${plan.jobTarget}');
+  }
+
+  /// 开始一个新计划（清空当前状态）
+  void startNewPlan() {
+    _currentPlanId = null;
+    jobDescription = '';
+    aiQuestions = [];
+    userAnswers = {};
+    studyWeeks = [];
+    selectedWeekIndex = 0;
+    notifyListeners();
+  }
+
+  /// 加载一个已保存的计划
+  void loadPlan(StudyPlan plan) {
+    _currentPlanId = plan.id;
+    jobDescription = plan.jobTarget;
+    aiQuestions = List<String>.from(plan.aiQuestions);
+    userAnswers = Map<String, String>.from(plan.userAnswers);
+    studyWeeks = plan.weeks;
+    selectedWeekIndex = 0;
+    _storage.setLastOpenPlanId(plan.id);
+    notifyListeners();
+  }
+
+  /// 删除一个已保存的计划
+  Future<void> deletePlan(String id) async {
+    await _storage.deletePlan(id);
+    if (_currentPlanId == id) {
+      startNewPlan();
+    }
+    notifyListeners();
+  }
 
   void setJobDescription(String value) {
     jobDescription = value;
@@ -137,6 +222,7 @@ $answersStr
 
     isGeneratingPlan = false;
     notifyListeners();
+    await _saveCurrent();
   }
 
   Future<void> refineWeek(int weekIndex) async {
@@ -192,6 +278,7 @@ $answersStr
 
     isGeneratingPlan = false;
     notifyListeners();
+    await _saveCurrent();
   }
 
   Future<void> generateDayDetail(int weekIndex, int dayIndex) async {
@@ -208,5 +295,6 @@ $answersStr
 
     isGeneratingPlan = false;
     notifyListeners();
+    await _saveCurrent();
   }
 }

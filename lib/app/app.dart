@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../features/input/presentation/input_page.dart';
+import '../features/main_shell/presentation/main_app_page.dart';
 import '../features/plan/application/app_state.dart';
+import '../features/plan/application/local_storage_service.dart';
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final LocalStorageService storage;
+
+  const MyApp({super.key, required this.storage});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => MyAppState(),
+      create: (context) => MyAppState(storage),
       child: MaterialApp(
         title: 'Career Plan AI',
         theme: ThemeData(
@@ -86,8 +90,25 @@ class MyApp extends StatelessWidget {
           ),
           typography: Typography.material2021(),
         ),
-        home: const InputPage(),
+        home: const _LandingPage(),
       ),
     );
+  }
+}
+
+/// 启动时根据是否有已保存的计划，决定显示哪个页面
+class _LandingPage extends StatelessWidget {
+  const _LandingPage();
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = context.watch<MyAppState>();
+
+    // 如果已有恢复的计划（studyWeeks 不为空），直接进入计划页面
+    if (appState.studyWeeks.isNotEmpty) {
+      return const MainAppPage();
+    }
+
+    return const InputPage();
   }
 }
