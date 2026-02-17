@@ -147,10 +147,17 @@ $answersStr
 
     final prompt = '''
 请细化第 ${weekIndex + 1} 周的内容：${studyWeeks[weekIndex].title}。
-请为 Day 1 到 Day 7 分别指定：标题、建议时长、推荐视频标题（直接给出适合在B站或其他平台搜索的视频标题）。
+请为 Day 1 到 Day 7 分别指定：标题、建议时长、推荐视频标题。
+
+【重要】视频推荐要求：
+1. 视频来源仅限：B站(bilibili)或YouTube
+2. 必须是播放量高、质量高、口碑好的优质教学视频
+3. 直接给出适合搜索的视频标题（例如："Python零基础入门教程 - 小甲鱼"）
+4. 优先推荐经典的、被广泛认可的系列教程
+
 请严格按照以下 JSON 格式返回：
 [
-  {"day": 1, "title": "Day 1 任务", "duration": "2小时", "video": "推荐的视频标题"},
+  {"day": 1, "title": "Day 1 任务", "duration": "2小时", "video": "推荐的优质视频标题"},
   ...
 ]
 ''';
