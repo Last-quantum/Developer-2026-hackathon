@@ -147,10 +147,10 @@ $answersStr
 
     final prompt = '''
 请细化第 ${weekIndex + 1} 周的内容：${studyWeeks[weekIndex].title}。
-请为 Day 1 到 Day 7 分别指定：标题、建议时长、参考视频链接。
+请为 Day 1 到 Day 7 分别指定：标题、建议时长、推荐视频标题（直接给出适合在B站或其他平台搜索的视频标题）。
 请严格按照以下 JSON 格式返回：
 [
-  {"day": 1, "title": "Day 1 任务", "duration": "2小时", "video": "https://..."},
+  {"day": 1, "title": "Day 1 任务", "duration": "2小时", "video": "推荐的视频标题"},
   ...
 ]
 ''';

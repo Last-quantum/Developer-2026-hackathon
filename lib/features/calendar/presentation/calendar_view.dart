@@ -32,7 +32,7 @@ class CalendarView extends StatelessWidget {
                   onTap: () {
                     if (day.videoLink.isNotEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('跳转视频: ${day.videoLink}')),
+                        SnackBar(content: Text('推荐视频: ${day.videoLink}')),
                       );
                     }
                   },
