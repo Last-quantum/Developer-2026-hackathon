@@ -1,0 +1,19 @@
+{
+  "name": "career-plan-ai-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "dev:local": "node --env-file=.env local-server.mjs",
+    "dev:local:watch": "node --watch --env-file=.env local-server.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vercel/node": "^5.3.25"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@types/node": "^22.13.14"
+  }
+}
