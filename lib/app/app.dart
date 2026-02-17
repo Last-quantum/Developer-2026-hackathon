@@ -21,6 +21,7 @@ class MyApp extends StatelessWidget {
         // 这样既能保证英文的清晰度，又能保证中文的完整性和清晰度
         theme: ThemeData(
           useMaterial3: true,
+          fontFamilyFallback: const ['Microsoft YaHei', 'PingFang SC', 'Heiti SC', 'Noto Sans CJK'],
           scaffoldBackgroundColor: const Color(0xFFF9FAFB),
           colorScheme: ColorScheme.fromSeed(
             seedColor: const Color(0xFF2C2C2C),
