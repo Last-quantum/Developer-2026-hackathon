@@ -17,15 +17,17 @@ class MyApp extends StatelessWidget {
       create: (context) => MyAppState(storage),
       child: MaterialApp(
         title: 'Career Plan AI',
+        // 为了解决中文字体渲染问题，不指定特定字体，让系统自动选择最佳字体
+        // 这样既能保证英文的清晰度，又能保证中文的完整性和清晰度
         theme: ThemeData(
           useMaterial3: true,
-          scaffoldBackgroundColor: const Color(0xFFF9FAFB), // Swiss Spa wall color
+          scaffoldBackgroundColor: const Color(0xFFF9FAFB),
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF2C2C2C), // Deep professional grey
+            seedColor: const Color(0xFF2C2C2C),
             primary: const Color(0xFF2C2C2C),
             surface: Colors.white,
             background: const Color(0xFFF9FAFB),
-            secondary: const Color(0xFF6B7280), // Muted grey for secondary 1
+            secondary: const Color(0xFF6B7280),
           ),
           appBarTheme: const AppBarTheme(
             backgroundColor: Colors.white,

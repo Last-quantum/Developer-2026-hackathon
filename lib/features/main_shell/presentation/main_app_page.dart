@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../calendar/presentation/calendar_view.dart';
 import '../../files/presentation/files_view.dart';
 import '../../plan/presentation/chat_plan_view.dart';
+import '../../plan/presentation/saved_plans_view.dart';
 
 class MainAppPage extends StatefulWidget {
   const MainAppPage({super.key});
@@ -42,6 +43,17 @@ class _MainAppPageState extends State<MainAppPage> {
             height: 1,
           ),
         ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SavedPlansView()),
+              );
+            },
+            icon: const Icon(Icons.history_rounded),
+            tooltip: 'Saved Plans',
+          )
+        ],
       ),
       body: pages[_selectedIndex],
       bottomNavigationBar: Container(

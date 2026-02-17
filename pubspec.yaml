@@ -28,3 +28,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # 注意：我们使用系统字体，不需要额外的字体文件
+  # 中文渲染由 MaterialApp 的默认字体处理
+  # 可选：添加 Google Fonts 来获得更好的渲染效果
+  # fonts:
+  #   - family: NotoSansCJK
+  #     fonts:
+  #       - asset: assets/fonts/NotoSansCJK-Regular.ttf
+  #         weight: 400

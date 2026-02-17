@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../main_shell/presentation/main_app_page.dart';
 import '../../plan/application/app_state.dart';
+import '../../plan/presentation/saved_plans_view.dart';
 
 class InputPage extends StatefulWidget {
   const InputPage({super.key});
@@ -29,12 +30,22 @@ class _InputPageState extends State<InputPage> {
       appBar: AppBar(
         title: const Text('Design Your Career',
             style: TextStyle(
-                fontFamily: 'Roboto',
                 fontWeight: FontWeight.w600,
                 letterSpacing: -0.5)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SavedPlansView()),
+              );
+            },
+            icon: const Icon(Icons.history_rounded),
+            tooltip: 'Saved Plans',
+          )
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
