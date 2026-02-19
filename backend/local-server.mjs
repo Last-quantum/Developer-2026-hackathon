@@ -65,6 +65,19 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (url.pathname === "/api/debug-env") {
+    const pat = process.env.COZE_PAT;
+    const botId = process.env.COZE_BOT_ID;
+    sendJson(res, 200, {
+      COZE_PAT: pat ? `Present (length: ${pat.length}, starts with: ${pat.substring(0, 5)}...)` : "Missing",
+      COZE_BOT_ID: botId ? `Present (length: ${botId.length})` : "Missing",
+      PORT: process.env.PORT,
+      NODE_ENV: process.env.NODE_ENV,
+      Limit: "Fixed for debugging"
+   });
+   return;
+  }
+
   if (url.pathname !== "/api/coze-chat") {
     sendJson(res, 404, { error: "Not found" });
     return;

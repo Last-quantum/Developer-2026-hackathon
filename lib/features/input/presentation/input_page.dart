@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../main_shell/presentation/main_app_page.dart';
 import '../../plan/application/app_state.dart';
 import '../../plan/presentation/saved_plans_view.dart';
 
@@ -29,9 +28,7 @@ class _InputPageState extends State<InputPage> {
       backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
         title: const Text('Design Your Career',
-            style: TextStyle(
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.5)),
+            style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: -0.5)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -66,9 +63,7 @@ class _InputPageState extends State<InputPage> {
             const Text(
               'Define your professional trajectory with precision.',
               style: TextStyle(
-                  fontSize: 16,
-                  color: Color(0xFF6B7280),
-                  letterSpacing: -0.2),
+                  fontSize: 16, color: Color(0xFF6B7280), letterSpacing: -0.2),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 48),
@@ -203,25 +198,22 @@ class _InputPageState extends State<InputPage> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: appState.userAnswers.values.any((a) => a.isEmpty)
+                onPressed: appState.userAnswers.values.any((a) => a.isEmpty) ||
+                        appState.isGeneratingPlan
                     ? null
                     : () async {
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (context) => const Center(
-                              child: CircularProgressIndicator(
-                                  color: Colors.white)),
-                        );
-                        await appState.generateFullFramework();
-                        if (mounted) {
-                          Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const MainAppPage(),
-                            ),
-                          );
+                        try {
+                          await appState.generateFullFramework();
+                          // _LandingPage 监听 studyWeeks 变化，会自动导航到 MainAppPage
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('生成计划失败，请重试: $e'),
+                                backgroundColor: Colors.red[700],
+                              ),
+                            );
+                          }
                         }
                       },
                 style: ElevatedButton.styleFrom(
@@ -232,9 +224,25 @@ class _InputPageState extends State<InputPage> {
                       borderRadius: BorderRadius.circular(12)),
                   elevation: 0,
                 ),
-                child: const Text('Create Strategy',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                child: appState.isGeneratingPlan
+                    ? const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
+                          ),
+                          SizedBox(width: 12),
+                          Text('Generating...',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w600)),
+                        ],
+                      )
+                    : const Text('Create Strategy',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600)),
               ),
               const SizedBox(height: 32),
             ],

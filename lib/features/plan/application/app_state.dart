@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -112,29 +113,55 @@ class MyAppState extends ChangeNotifier {
   }
 
   Future<String> _callCoze(String query) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_apiBaseUrl/api/coze-chat'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'query': query,
-          'userId': 'user_flutter_app',
-        }),
-      );
+    const int maxRetries = 2; // Try up to 3 times total
+    const Duration retryDelay = Duration(seconds: 2);
 
-      if (response.statusCode != 200) {
-        throw Exception('Backend proxy call failed: ${response.body}');
+    for (int attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        final response = await http
+            .post(
+              Uri.parse('$_apiBaseUrl/api/coze-chat'),
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({
+                'query': query,
+                'userId': 'user_flutter_app',
+              }),
+            )
+            .timeout(const Duration(seconds: 120));
+
+        if (response.statusCode != 200) {
+          throw Exception('Backend proxy call failed: ${response.body}');
+        }
+
+        final data = jsonDecode(response.body);
+        final content = data['content'];
+        return content is String && content.isNotEmpty
+            ? content
+            : 'No response from AI';
+      } on TimeoutException {
+        debugPrint('Coze API Timeout (Attempt ${attempt + 1})');
+        if (attempt == maxRetries) return 'Error: 请求超时，请检查网络后重试';
+      } on http.ClientException catch (e) {
+        debugPrint('Coze API Connection Error (Attempt ${attempt + 1}): $e');
+        if (attempt == maxRetries) return 'Error: 网络连接中断，请检查网络';
+      } catch (e) {
+        // SocketException is often wrapped in ClientException or thrown directly
+        if (e.toString().contains('SocketException') ||
+            e.toString().contains('Connection closed')) {
+          debugPrint('Coze API Socket Error (Attempt ${attempt + 1}): $e');
+          if (attempt == maxRetries) return 'Error: 网络连接异常，请重试';
+        } else {
+          debugPrint('Coze API Error: $e');
+          return 'Error: $e';
+        }
       }
 
-      final data = jsonDecode(response.body);
-      final content = data['content'];
-      return content is String && content.isNotEmpty
-          ? content
-          : 'No response from AI';
-    } catch (e) {
-      debugPrint('Coze API Error: $e');
-      return 'Error: $e';
+      // Wait before retrying
+      if (attempt < maxRetries) {
+        await Future.delayed(retryDelay * (attempt + 1)); // Exponential backoff
+      }
     }
+    return 'Error: 多次请求失败，请稍后重试';
   }
 
   Future<void> generateQuestions() async {
@@ -145,7 +172,7 @@ class MyAppState extends ChangeNotifier {
 
     // 检测输入语言
     final language = LanguageDetector.detectLanguage(jobDescription);
-    
+
     // 根据语言选择提示词
     final prompt = language == 'zh'
         ? '''我想要学习 $jobDescription 这个岗位。请作为职业规划导师，向我提 4 个最关键的问题，以了解我的基础、时间、偏好等，从而为我制定学习计划。请直接返回问题列表，每行一个问题，不要有其他前言或废话。'''
@@ -196,7 +223,9 @@ class MyAppState extends ChangeNotifier {
 
     final answersStr = language == 'zh'
         ? userAnswers.entries.map((e) => '问：${e.key} 答：${e.value}').join('\n')
-        : userAnswers.entries.map((e) => 'Q: ${e.key} A: ${e.value}').join('\n');
+        : userAnswers.entries
+            .map((e) => 'Q: ${e.key} A: ${e.value}')
+            .join('\n');
 
     final prompt = language == 'zh'
         ? '''
@@ -225,6 +254,11 @@ Return strictly in the following JSON format (no other text):
 ''';
 
     final result = await _callCoze(prompt);
+    if (result.startsWith('Error:')) {
+      isGeneratingPlan = false;
+      notifyListeners();
+      throw Exception(result);
+    }
     try {
       final jsonStart = result.indexOf('[');
       final jsonEnd = result.lastIndexOf(']') + 1;
@@ -254,13 +288,27 @@ Return strictly in the following JSON format (no other text):
     isGeneratingPlan = false;
     notifyListeners();
     await _saveCurrent();
+
+    // 后台预加载所有周的每日详情（fire-and-forget，不阻塞 UI）
+    _prefetchAllWeeks();
+  }
+
+  /// 后台顺序预加载所有周的每日详情
+  Future<void> _prefetchAllWeeks() async {
+    for (int i = 0; i < studyWeeks.length; i++) {
+      if (studyWeeks[i].days.isNotEmpty) continue;
+      await _loadWeekDetails(i);
+    }
   }
 
   Future<void> refineWeek(int weekIndex) async {
     if (studyWeeks[weekIndex].days.isNotEmpty) return;
+    await _loadWeekDetails(weekIndex);
+  }
 
-    isGeneratingPlan = true;
-    notifyListeners();
+  /// 加载指定周的每日详情（不影响全局 isGeneratingPlan 状态）
+  Future<void> _loadWeekDetails(int weekIndex) async {
+    if (studyWeeks[weekIndex].days.isNotEmpty) return;
 
     // 检测当前语言
     final language = LanguageDetector.detectLanguage(jobDescription);
@@ -327,7 +375,6 @@ Return strictly in JSON format:
       );
     }
 
-    isGeneratingPlan = false;
     notifyListeners();
     await _saveCurrent();
   }

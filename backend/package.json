@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "start": "node local-server.mjs",
     "dev": "vercel dev",
     "dev:local": "node --env-file=.env local-server.mjs",
     "dev:local:watch": "node --watch --env-file=.env local-server.mjs",
