@@ -30,7 +30,7 @@ class MyAppState extends ChangeNotifier {
   List<StudyPlan> get savedPlans => _storage.getAllPlans();
 
   static const String _apiBaseUrl = String.fromEnvironment('API_BASE_URL',
-      defaultValue: 'http://localhost:3000');
+      defaultValue: 'http://47.107.246.192:3000');
 
   MyAppState(this._storage) {
     _tryRestoreLastPlan();
@@ -383,9 +383,12 @@ Return strictly in JSON format:
     isGeneratingPlan = true;
     notifyListeners();
 
+    // Detect language from the original input to align document language.
+    final language = LanguageDetector.detectLanguage(jobDescription);
     final dayTitle = studyWeeks[weekIndex].days[dayIndex].title;
-    final prompt =
-        '请为学习计划中的 $dayTitle 生成具体的学习文档内容。包含详细的知识点解读、示例代码（如有）和今日练习。使用 Markdown 格式。';
+    final prompt = language == 'zh'
+      ? '请为学习计划中的 $dayTitle 生成具体的学习文档内容。包含详细的知识点解读、示例代码（如有）和今日练习。使用 Markdown 格式。'
+      : 'Please generate a detailed learning document for $dayTitle in the study plan. Include a clear explanation of key concepts, example code where relevant, and practice tasks for today. Use Markdown format.';
 
     final result = await _callCoze(prompt);
     studyWeeks[weekIndex].days[dayIndex].detailedContent = result;
